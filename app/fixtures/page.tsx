@@ -133,3 +133,17 @@ export default function FixturesAdminPage() {
         {fixtures.map((f) => (
           <div
             key={f.id}
+            className="backdrop-blur-xl bg-black/20 border border-white/20 
+                       p-4 rounded-xl shadow-xl"
+          >
+            <p className="font-semibold text-lg">Match #{f.match_no}</p>
+            <p className="text-sm">{f.venue}</p>
+            <p className="text-sm text-gray-400">
+              {new Date(f.date_time).toLocaleString("en-AU")}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
