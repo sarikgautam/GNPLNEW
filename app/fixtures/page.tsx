@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 
-export default function FixturesPage() {
+export default function FixturesAdminPage() {
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const fetchTeams = async () => {
-    const { data } = await supabase.from("teams").select("*");
-    if (data) setTeams(data);
-  };
+  const [matchNo, setMatchNo] = useState("");
+  const [teamA, setTeamA] = useState("");
+  const [teamB, setTeamB] = useState("");
+  const [venue, setVenue] = useState("");
+  const [dateTime, setDateTime] = useState("");
 
   const fetchFixtures = async () => {
     const { data } = await supabase
@@ -21,79 +21,115 @@ export default function FixturesPage() {
       .select("*")
       .order("date_time", { ascending: true });
 
-    if (data) setFixtures(data);
-    setLoading(false);
+    setFixtures(data || []);
+  };
+
+  const fetchTeams = async () => {
+    const { data } = await supabase.from("teams").select("*");
+    setTeams(data || []);
   };
 
   useEffect(() => {
-    fetchTeams();
     fetchFixtures();
+    fetchTeams();
   }, []);
 
-  const getTeam = (id: string) => teams.find((t) => t.id === id);
+  const addFixture = async () => {
+    setLoading(true);
+
+    await supabase.from("fixtures").insert([
+      {
+        match_no: matchNo,
+        team_a: teamA,
+        team_b: teamB,
+        venue,
+        date_time: dateTime,
+        status: "upcoming",
+      },
+    ]);
+
+    setLoading(false);
+
+    setMatchNo("");
+    setTeamA("");
+    setTeamB("");
+    setVenue("");
+    setDateTime("");
+
+    fetchFixtures();
+  };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-20">
-      <h1 className="text-4xl font-bold text-center mb-12 text-green-400">
-        Fixtures
-      </h1>
+    <div className="max-w-4xl mx-auto p-6 text-white">
+      <h1 className="text-3xl font-bold mb-6 text-green-400">Manage Fixtures</h1>
 
-      {loading && (
-        <p className="text-center text-gray-500">Loading fixtures…</p>
+      <div className="glass-card p-6 rounded-xl mb-12 border border-white/20 bg-black/30">
+        <h2 className="text-xl font-semibold mb-4">Add Fixture</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            className="input"
+            placeholder="Match No"
+            value={matchNo}
+            onChange={(e) => setMatchNo(e.target.value)}
+          />
+
+          <select
+            className="input"
+            value={teamA}
+            onChange={(e) => setTeamA(e.target.value)}
+          >
+            <option value="">Team A</option>
+            {teams.map((team) => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="input"
+            value={teamB}
+            onChange={(e) => setTeamB(e.target.value)}
+          >
+            <option value="">Team B</option>
+            {teams.map((team) => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
+
+          <input
+            className="input"
+            placeholder="Venue"
+            value={venue}
+            onChange={(e) => setVenue(e.target.value)}
+          />
+
+          <input
+            className="input"
+            type="datetime-local"
+            value={dateTime}
+            onChange={(e) => setDateTime(e.target.value)}
+          />
+        </div>
+
+        <Button
+          onClick={addFixture}
+          className="w-full mt-4 bg-green-400 text-black hover:bg-green-300"
+        >
+          {loading ? "Saving..." : "Add Fixture"}
+        </Button>
+      </div>
+
+      <h2 className="text-xl font-semibold mb-4 text-green-300">Existing Fixtures</h2>
+
+      {fixtures.length === 0 && (
+        <p className="text-gray-400">No fixtures added yet.</p>
       )}
 
-      <div className="grid md:grid-cols-2 gap-10">
-        {fixtures.map((match) => {
-          const A = getTeam(match.team_a);
-          const B = getTeam(match.team_b);
-
-          return (
-            <div
-              key={match.id}
-              className="
-                backdrop-blur-xl bg-black/20 border border-white/30 
-                rounded-2xl shadow-xl p-8 
-                transition-all hover:-translate-y-2 hover:shadow-2xl
-              "
-            >
-              {/* Header */}
-              <div className="text-center mb-6">
-                <p className="text-green-300 font-bold">
-                  Match #{match.match_no}
-                </p>
-                <p className="text-sm text-gray-300 mt-1">
-                  {new Date(match.date_time).toLocaleString("en-AU")}
-                </p>
-                <p className="text-sm text-gray-400">{match.venue}</p>
-              </div>
-
-              {/* Teams Row */}
-              <div className="flex items-center justify-between px-6">
-                <div className="flex flex-col items-center">
-                  <img src={A?.logo} className="w-24 h-24 object-contain" />
-                  <p className="text-white font-semibold mt-2">{A?.name}</p>
-                </div>
-
-                <p className="text-green-400 font-bold text-2xl">VS</p>
-
-                <div className="flex flex-col items-center">
-                  <img src={B?.logo} className="w-24 h-24 object-contain" />
-                  <p className="text-white font-semibold mt-2">{B?.name}</p>
-                </div>
-              </div>
-
-              {/* CTA */}
-              <div className="text-center mt-6">
-                <Link href={`/fixtures/${match.id}`}>
-                  <Button className="bg-green-400 text-black hover:bg-green-300">
-                    View Fixture
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
+      <div className="space-y-4">
+        {fixtures.map((f) => (
+          <div
+            key={f.id}
