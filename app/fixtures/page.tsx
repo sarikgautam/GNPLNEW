@@ -4,9 +4,25 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 
+type TeamType = {
+  id: string;
+  name: string;
+  logo?: string;
+};
+
+type FixtureType = {
+  id: string;
+  match_no: string;
+  team_a: string;
+  team_b: string;
+  venue: string;
+  date_time: string;
+  status: string;
+};
+
 export default function FixturesAdminPage() {
-  const [fixtures, setFixtures] = useState<any[]>([]);
-  const [teams, setTeams] = useState<any[]>([]);
+  const [fixtures, setFixtures] = useState<FixtureType[]>([]);
+  const [teams, setTeams] = useState<TeamType[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [matchNo, setMatchNo] = useState("");
@@ -21,12 +37,12 @@ export default function FixturesAdminPage() {
       .select("*")
       .order("date_time", { ascending: true });
 
-    setFixtures(data || []);
+    setFixtures((data as FixtureType[]) || []);
   };
 
   const fetchTeams = async () => {
     const { data } = await supabase.from("teams").select("*");
-    setTeams(data || []);
+    setTeams((data as TeamType[]) || []);
   };
 
   useEffect(() => {
@@ -35,6 +51,11 @@ export default function FixturesAdminPage() {
   }, []);
 
   const addFixture = async () => {
+    if (!matchNo || !teamA || !teamB || !venue || !dateTime) {
+      alert("Please fill all fields");
+      return;
+    }
+
     setLoading(true);
 
     await supabase.from("fixtures").insert([
@@ -123,7 +144,9 @@ export default function FixturesAdminPage() {
         </Button>
       </div>
 
-      <h2 className="text-xl font-semibold mb-4 text-green-300">Existing Fixtures</h2>
+      <h2 className="text-xl font-semibold mb-4 text-green-300">
+        Existing Fixtures
+      </h2>
 
       {fixtures.length === 0 && (
         <p className="text-gray-400">No fixtures added yet.</p>
