@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 
-export default function LatestResults() {
+export default function ResultsPage() {
   const [results, setResults] = useState<any[]>([]);
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -17,8 +17,7 @@ export default function LatestResults() {
     const { data: resultData } = await supabase
       .from("results")
       .select("*")
-      .order("created_at", { ascending: false })
-      .limit(3);
+      .order("created_at", { ascending: false });
 
     setTeams(teamsData || []);
     setFixtures(fixtureData || []);
@@ -30,31 +29,24 @@ export default function LatestResults() {
     fetchData();
   }, []);
 
-  const getFixture = (id: string) => fixtures.find((f) => f.id === id);
   const getTeam = (id: string) => teams.find((t) => t.id === id);
+  const getFixture = (id: string) => fixtures.find((f) => f.id === id);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 mt-24">
-      <h2 className="text-3xl font-bold text-center mb-10 text-green-400">
-        Latest Results
-      </h2>
+    <section className="max-w-7xl mx-auto px-4 py-20">
+      <h1 className="text-4xl font-bold text-center mb-12 text-green-400">
+        Results
+      </h1>
 
-      {/* Loading */}
       {loading && (
         <p className="text-center text-gray-500">Loading results…</p>
       )}
 
-      {/* No Results */}
-      {!loading && results.length === 0 && (
-        <p className="text-center text-gray-400">No completed matches yet.</p>
-      )}
-
-      {/* Results Grid */}
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-2 gap-10">
         {results.map((res) => {
           const fixture = getFixture(res.match_id);
-          const teamA = getTeam(fixture?.team_a);
-          const teamB = getTeam(fixture?.team_b);
+          const A = getTeam(fixture?.team_a);
+          const B = getTeam(fixture?.team_b);
           const winner = getTeam(res.winner);
 
           return (
@@ -62,7 +54,7 @@ export default function LatestResults() {
               key={res.id}
               className="
                 backdrop-blur-xl bg-black/20 border border-white/30 
-                rounded-2xl shadow-xl p-6 
+                rounded-2xl shadow-xl p-8 
                 transition-all hover:-translate-y-2 hover:shadow-2xl
               "
             >
@@ -78,32 +70,26 @@ export default function LatestResults() {
               </div>
 
               {/* Teams */}
-              <div className="flex items-center justify-between px-2">
+              <div className="flex items-center justify-between px-6">
                 <div className="flex flex-col items-center">
-                  <img
-                    src={teamA?.logo}
-                    className="w-20 h-20 object-contain drop-shadow-lg"
-                  />
-                  <p className="text-sm text-white mt-2">{teamA?.name}</p>
+                  <img src={A?.logo} className="w-24 h-24 object-contain" />
+                  <p className="text-white font-semibold mt-2">{A?.name}</p>
                 </div>
 
-                <p className="text-green-400 font-bold text-xl">VS</p>
+                <p className="text-green-400 font-bold text-2xl">VS</p>
 
                 <div className="flex flex-col items-center">
-                  <img
-                    src={teamB?.logo}
-                    className="w-20 h-20 object-contain drop-shadow-lg"
-                  />
-                  <p className="text-sm text-white mt-2">{teamB?.name}</p>
+                  <img src={B?.logo} className="w-24 h-24 object-contain" />
+                  <p className="text-white font-semibold mt-2">{B?.name}</p>
                 </div>
               </div>
 
-              {/* Result Summary */}
+              {/* Score Summary */}
               <p className="text-center text-gray-300 italic mt-4">
                 {res.score_summary}
               </p>
 
-              {/* Winner */}
+              {/* Winner Badge */}
               <p className="text-center mt-2 font-semibold text-green-300">
                 Winner: {winner?.name}
               </p>
@@ -111,7 +97,7 @@ export default function LatestResults() {
               {/* CTA */}
               <div className="text-center mt-6">
                 <Link href={`/fixtures/${fixture.id}`}>
-                  <Button size="sm" className="bg-green-400 text-black hover:bg-green-300">
+                  <Button className="bg-green-400 text-black hover:bg-green-300">
                     View Scorecard
                   </Button>
                 </Link>

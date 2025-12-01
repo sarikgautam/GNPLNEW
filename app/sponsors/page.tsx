@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function SponsorsSection() {
+export default function SponsorsPage() {
   const [sponsors, setSponsors] = useState<any[]>([]);
 
   const fetchSponsors = async () => {
@@ -20,31 +20,30 @@ export default function SponsorsSection() {
   }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 mt-24 mb-20">
-      <h2 className="text-3xl font-bold text-center text-green-400 mb-12">
-        Sponsors
-      </h2>
+    <div className="max-w-7xl mx-auto px-4 py-20 text-white">
+      <h1 className="text-4xl font-bold text-green-400 mb-12 text-center">
+        Our Sponsors
+      </h1>
 
       {sponsors.length === 0 && (
         <p className="text-center text-gray-400">No sponsors added yet.</p>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12">
         {sponsors.map((s) => (
           <div
             key={s.id}
-            className="backdrop-blur-xl bg-black/20 border border-white/20 
-                       p-4 rounded-xl shadow-lg hover:shadow-2xl
-                       transition-all hover:border-green-400"
+            className="p-6 rounded-xl backdrop-blur-xl bg-black/20 border border-white/20
+                       shadow-lg hover:shadow-2xl hover:border-green-400 transition-all"
           >
             <img
               src={s.logo}
               alt={s.name}
-              className="w-full h-32 object-contain 
-                         drop-shadow-[0_0_15px_rgba(0,255,140,0.5)]"
+              className="w-full h-32 object-contain mx-auto 
+                         drop-shadow-[0_0_15px_rgba(0,255,150,0.5)]"
             />
 
-            <p className="text-center mt-3 font-semibold">{s.name}</p>
+            <p className="text-center mt-4 font-semibold">{s.name}</p>
             <p className="text-center text-sm text-gray-400 capitalize">
               {s.category}
             </p>
@@ -53,7 +52,7 @@ export default function SponsorsSection() {
               <a
                 href={s.link}
                 target="_blank"
-                className="text-green-400 underline text-center block mt-2 text-sm"
+                className="block text-center text-green-400 hover:underline text-sm mt-2"
               >
                 Visit Website
               </a>
@@ -61,6 +60,6 @@ export default function SponsorsSection() {
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

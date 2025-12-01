@@ -1,106 +1,54 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { Button } from "@/components/ui/button";
 
 export default function TeamsSection() {
   const [teams, setTeams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchTeams = async () => {
-    const { data } = await supabase.from("teams").select("*").order("name", { ascending: true });
-    if (data) setTeams(data);
-    setLoading(false);
-  };
 
   useEffect(() => {
-    fetchTeams();
+    supabase.from("teams").select("*").order("name").then(({ data }) => {
+      if (data) setTeams(data);
+    });
   }, []);
 
-  if (loading) {
-    return (
-      <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <p className="text-gray-400">Loading teams…</p>
-      </section>
-    );
-  }
-
-  if (!teams.length) {
-    return (
-      <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-3xl font-bold text-white mb-6">Teams</h2>
-        <p className="text-gray-400">No teams available.</p>
-      </section>
-    );
-  }
-
   return (
-    <section className="max-w-7xl mx-auto px-4 mt-24">
-      <h2 className="text-3xl font-extrabold text-white text-center mb-10">
-        Teams
+    <section className="max-w-7xl mx-auto px-4 mt-20">
+      <h2 className="text-3xl font-bold text-center text-green-400 mb-10">
+        Teams of GNPL
       </h2>
 
-      <div className="grid md:grid-cols-4 sm:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
         {teams.map((team) => (
           <div
             key={team.id}
             className="
-              bg-white 
-              rounded-xl 
-              shadow-md 
-              p-6 
-              border border-gray-200 
-              hover:shadow-lg 
-              transition
+              backdrop-blur-xl bg-black/20 border border-white/30 
+              p-6 rounded-2xl shadow-xl 
+              hover:-translate-y-2 hover:shadow-2xl 
+              transition-all cursor-pointer
             "
           >
-            {/* Logo */}
-            <div className="flex justify-center mb-4">
-              <img
-                src={team.logo}
-                alt={team.name}
-                className="w-24 h-24 rounded-full object-cover border border-gray-300"
-              />
-            </div>
+            {/* Full real logo */}
+            <img
+              src={team.logo}
+              className="w-32 h-32 mx-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)]"
+            />
 
-            {/* Team Name */}
-            <h3 className="text-xl font-semibold text-center text-gray-900 mb-4">
-              {team.name}
-            </h3>
+            <h3 className="text-xl font-bold mt-4 text-green-400">{team.name}</h3>
+            <p className="text-gray-300 text-sm mt-1">{team.short_desc}</p>
 
-            {/* Info */}
-            <div className="space-y-1 text-sm text-gray-700 text-center">
-              <p>
-                <span className="font-semibold text-gray-900">Captain:</span>{" "}
-                {team.captain}
-              </p>
-              <p>
-                <span className="font-semibold text-gray-900">Owner:</span>{" "}
-                {team.owner}
-              </p>
-              <p>
-                <span className="font-semibold text-gray-900">Rank:</span>{" "}
-                {team.last_season_rank}
-              </p>
-            </div>
-
-            {/* Button */}
-            <div className="flex justify-center mt-6">
-              <Button
-                asChild
-                className="
-                  bg-cyan-500 
-                  hover:bg-cyan-400 
-                  text-white 
-                  font-semibold 
-                  rounded-full 
-                  px-6
-                "
-              >
-                <a href={`/teams/${team.id}`}>View Squad</a>
-              </Button>
-            </div>
+            <Link
+              href={`/teams/${team.id}`}
+              className="
+                inline-block mt-5 px-4 py-2 bg-green-400 
+                hover:bg-green-300 text-black rounded-full 
+                font-semibold text-sm shadow-md transition
+              "
+            >
+              View Squad
+            </Link>
           </div>
         ))}
       </div>

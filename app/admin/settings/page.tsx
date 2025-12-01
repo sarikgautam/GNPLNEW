@@ -2,22 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
-export default function SeasonSettings() {
-  const [loading, setLoading] = useState(false);
-  const [season, setSeason] = useState({
-    id: "",
-    title: "",
-    start_date: "",
-    active: false,
-    hero_bg: "",
-  });
+export default function SeasonSettingsPage() {
+  const [season, setSeason] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch active season
   const fetchSeason = async () => {
     const { data, error } = await supabase
       .from("seasons")
@@ -28,111 +19,70 @@ export default function SeasonSettings() {
     if (!error && data) {
       setSeason(data);
     }
+    setLoading(false);
+  };
+
+  const saveSeason = async () => {
+    const { error } = await supabase
+      .from("seasons")
+      .update({
+        name: season.name,
+        start_date: season.start_date,
+        hero_bg: season.hero_bg,
+      })
+      .eq("id", season.id);
+
+    if (error) alert("Error saving: " + error.message);
+    else alert("Season updated!");
   };
 
   useEffect(() => {
     fetchSeason();
   }, []);
 
-  // Upload Image
-  const uploadBanner = async (e: any) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const filePath = `${season.id}/${file.name}`;
-
-    const { data, error } = await supabase.storage
-      .from("season-banners")
-      .upload(filePath, file, { upsert: true });
-
-    if (!error) {
-      const imageUrl =
-        supabase.storage.from("season-banners").getPublicUrl(filePath).data
-          .publicUrl;
-
-      setSeason({ ...season, hero_bg: imageUrl });
-    }
-  };
-
-  // Save Settings
-  const saveSeason = async () => {
-    setLoading(true);
-
-    const { error } = await supabase
-      .from("seasons")
-      .update({
-        title: season.title,
-        start_date: season.start_date,
-        active: season.active,
-        hero_bg: season.hero_bg,
-      })
-      .eq("id", season.id);
-
-    setLoading(false);
-    if (!error) alert("Season updated!");
-  };
+  if (loading || !season) {
+    return <p className="p-6 text-gray-500">Loading season settings…</p>;
+  }
 
   return (
-    <div className="max-w-3xl mx-auto mt-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>Season Settings</CardTitle>
-        </CardHeader>
+    <div className="max-w-2xl mx-auto py-10 px-4">
+      <h1 className="text-2xl font-bold mb-6">Season Settings</h1>
 
-        <CardContent className="space-y-6">
+      {/* Season Name */}
+      <label className="text-sm font-semibold">Season Name</label>
+      <Input
+        value={season.name}
+        onChange={(e) => setSeason({ ...season, name: e.target.value })}
+        className="mb-4"
+      />
 
-          {/* Season Name */}
-          <div>
-            <label>Season Name</label>
-            <Input
-              value={season.title}
-              onChange={(e) =>
-                setSeason({ ...season, title: e.target.value })
-              }
-            />
-          </div>
+      {/* Start Date */}
+      <label className="text-sm font-semibold">Season Start Date & Time</label>
+      <Input
+        type="datetime-local"
+        value={
+          season.start_date
+            ? new Date(season.start_date).toISOString().slice(0, 16)
+            : ""
+        }
+        onChange={(e) =>
+          setSeason({ ...season, start_date: new Date(e.target.value).toISOString() })
+        }
+        className="mb-4"
+      />
 
-          {/* Start Date */}
-          <div>
-            <label>Season Start Date</label>
-            <Input
-              type="date"
-              value={season.start_date}
-              onChange={(e) =>
-                setSeason({ ...season, start_date: e.target.value })
-              }
-            />
-          </div>
+      {/* Hero Banner URL */}
+      <label className="text-sm font-semibold">Hero Background Image URL</label>
+      <Input
+        value={season.hero_bg}
+        onChange={(e) => setSeason({ ...season, hero_bg: e.target.value })}
+        className="mb-4"
+      />
 
-          {/* Active Toggle */}
-          <div className="flex items-center gap-4">
-            <Switch
-              checked={season.active}
-              onCheckedChange={(val) =>
-                setSeason({ ...season, active: val })
-              }
-            />
-            <span>Set this as active season</span>
-          </div>
-
-          {/* Background Image Upload */}
-          <div>
-            <label>Hero Background</label>
-            <Input type="file" accept="image/*" onChange={uploadBanner} />
-            {season.hero_bg && (
-              <img
-                src={season.hero_bg}
-                className="mt-3 w-full rounded-lg"
-                alt="Banner Preview"
-              />
-            )}
-          </div>
-
-          <Button onClick={saveSeason} disabled={loading}>
-            {loading ? "Saving..." : "Save Settings"}
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Save Button */}
+      <Button onClick={saveSeason} className="bg-cyan-500 hover:bg-cyan-400">
+        Save Settings
+      </Button>
     </div>
   );
 }
